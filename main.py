@@ -14,11 +14,17 @@ from utils.jsc import JetSubstructureDataset
 from hdl.convert2vhdl import get_model_params, gen_vhdl_code
 from hdl.convert2sv import gen_sv_code
 
+# Cleaning
+import shutil
+import sys
+from pathlib import Path
+
 def get_args():
     parser = argparse.ArgumentParser(description='Train LUTNN.')
 
-    # parser.add_argument('--clean', )
-
+    # clean
+    parser.add_argument("--clean", choices=["models", "data", "all"], help="Delete generated artifacts. Use with --name to delete only that model's outputs.")
+    
     parser.add_argument('--dataset', type=str, choices=['mnist', 'mnist20x20', 'cifar10-3', 'cifar10-31', 'adult', 'breast', 'jsc'], default="mnist20x20", help='Dataset to use')
     parser.add_argument('--seed', type=int, default=0, help='seed (default: 0)')
     parser.add_argument('--batch-size', '-bs', type=int, default=128, help='batch size (default: 128)')
@@ -136,9 +142,83 @@ def load_dataset(args):
         num_classes = 5
     return train_loader, test_loader, input_dim_dataset, num_classes
 
+# Clean ------------------------------------------------------------------------------------------------
+from pathlib import Path
+import shutil
+
+def _rm_path(p: Path):
+    if not p.exists():
+        return
+    if p.is_dir():
+        shutil.rmtree(p)
+    else:
+        p.unlink()
+
+def clean_artifacts(clean_what: str, name: str | None):
+    models_dir = Path("models")
+    data_dir = Path("data")
+
+    targets: list[Path] = []
+
+    # models
+    if clean_what in ("models", "all"):
+        if name:
+            # delete just models/<name>.pth
+            targets.append(models_dir / f"{name}.pth")
+        else:
+            # delete all model weights
+            targets.append(models_dir)
+
+    # data
+    if clean_what in ("data", "all"):
+        if name:
+            # delete only outputs for that experiment name (covers common layouts)
+            targets.extend([
+                data_dir / "VHDL" / name,
+                data_dir / "vhdl" / name,
+                data_dir / "SV" / name,
+                data_dir / "sv" / name,
+            ])
+        else:
+            # delete entire data folder
+            targets.append(data_dir)
+
+    # Filter non-existent, dedupe
+    uniq: list[Path] = []
+    seen: set[str] = set()
+    for t in targets:
+        if t.exists() and str(t) not in seen:
+            uniq.append(t)
+            seen.add(str(t))
+    targets = uniq
+
+    if not targets:
+        print("[clean] Nothing to delete.")
+        return
+
+    print("[clean] Will delete:")
+    for t in targets:
+        print(f"  - {t}")
+
+    resp = input("Proceed? [y/N] ").strip().lower()
+    if resp not in ("y", "yes"):
+        print("[clean] Aborted.")
+        return
+
+    for t in targets:
+        _rm_path(t)
+
+    print("[clean] Done.")
+# --------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     args = get_args()
+
+    # clean
+    if args.clean:
+        clean_artifacts(args.clean, args.name)
+        sys.exit(0)
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     set_seeds(args.seed)
