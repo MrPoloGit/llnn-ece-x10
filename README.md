@@ -75,7 +75,13 @@ In python environment
 ```bash
 python main.py --help
 python3 -m venv venv
+
+# Windows
+source venv/Scripts/activate
+
+# MacOS and Linux
 source venv/bin/activate
+
 pip install -e .
 pip install -r requirements.txt
 python main.py --train --save --name model1 --dataset mnist --batch-size 128 -lr 0.01 --num-iterations 10000
@@ -84,4 +90,7 @@ python main.py --load --vhdl --name model1 --dataset mnist
 python main.py --load --sv --name model1 --dataset mnist
 ```
 
-## Need to add a clean script?
+# Changes
+- main.py, line 229
+- utils/mnist.py, line 47
+- vhdl/convert2vhdl, line 266

@@ -5,3 +5,4 @@ lutnn/__pycache__/
 data-mnist/
 data/
 lutnn.egg-info/
+venv/
