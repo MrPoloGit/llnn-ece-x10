@@ -1,0 +1,7 @@
+vhdl/__pycache__/
+utils/__pycache__/
+models/
+lutnn/__pycache__/
+data-mnist/
+data/
+lutnn.egg-info/

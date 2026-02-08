@@ -17,11 +17,10 @@ def get_args():
     parser.add_argument('--name', type=str, help='Output VHDL name')
     return parser.parse_args()
 
-
 def create_vhdl_folder(path):
     Path(path).mkdir(parents=True, exist_ok=True)
 
-
+# def gen_globals_file(number_of_inputs, number_of_layers, num_neurons, outputs_per_class, output_bits, vhdl_path):
 def gen_globals_file(number_of_inputs, number_of_layers, num_neurons, lut_size, outputs_per_class, output_bits, vhdl_path):
     with open(os.path.join(vhdl_path, "Globals.vhd"), "w") as file:
         file.write('-----------------------------------------------------------------------------------------\n')
@@ -263,7 +262,8 @@ def get_prefix_sums(layers):
     return prefix_sums
 
 
-def get_net_layers(model, verbose=False):
+# def get_net_layers(model, verbose=False):
+def get_net_layers(model, lut_size, verbose=False):
     layers = []
     first = True
     print(model.model)
@@ -291,7 +291,6 @@ def get_net_layers(model, verbose=False):
             assert False, 'Error: layer {} / {} unknown.'.format(type(layer), layer)
     return layers
 
-
 def get_model_params(model):
     lut_size = []
     num_neurons = []
@@ -307,12 +306,15 @@ def get_model_params(model):
     number_of_layers = len(num_neurons)
     return number_of_layers, num_neurons, lut_size, number_of_inputs, number_of_classes
 
-
 # if __name__ == "__main__":
 #     args = get_args()
 #     if args.name is None:
 #         args.name = args.model
 
 #     model = torch.load(f"../models/{args.model}.pth")
+#     # repo_root = Path(__file__).resolve().parent.parent
+#     # model_path = repo_root / "models" / f"{args.model}.pth"
+#     # model = torch.load(model_path, weights_only=False)
+
 #     number_of_layers, num_neurons, lut_size, number_of_inputs, number_of_classes = get_model_params(model)
 #     gen_vhdl_code(model, args.name, number_of_layers, number_of_classes, number_of_inputs, num_neurons, lut_size)

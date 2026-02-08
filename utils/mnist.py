@@ -44,10 +44,16 @@ def load_mnist_dataset(batch_size, mnist20=False):
     transform = transforms.Compose(trans)
     train_set = MNIST('./data-mnist', train=True, download=True, transform=transform)
     test_set = MNIST('./data-mnist', train=False, transform=transform)
-    train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, pin_memory=True,
-                                               drop_last=True, num_workers=4)
-    test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False, pin_memory=True,
+
+    # train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, pin_memory=True,
+    #                                            drop_last=True, num_workers=4)
+    # test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False, pin_memory=True,
+    #                                           drop_last=True)
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, pin_memory=False,
+                                               drop_last=True, num_workers=0)
+    test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False, pin_memory=False,
                                               drop_last=True)
+
     input_dim_dataset = 400
     num_classes = 10
     return train_loader, test_loader, input_dim_dataset, num_classes

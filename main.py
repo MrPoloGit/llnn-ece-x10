@@ -9,11 +9,15 @@ from utils.mnist import load_mnist_dataset
 from utils.cifar10 import load_cifar10_dataset
 from utils.uci_datasets import AdultDataset, BreastCancerDataset
 from utils.jsc import JetSubstructureDataset
-from vhdl.convert2vhdl import get_model_params, gen_vhdl_code
 
+# Hardware Descriptor Languages
+from hdl.convert2vhdl import get_model_params, gen_vhdl_code
+from hdl.convert2sv import gen_sv_code
 
 def get_args():
     parser = argparse.ArgumentParser(description='Train LUTNN.')
+
+    # parser.add_argument('--clean', )
 
     parser.add_argument('--dataset', type=str, choices=['mnist', 'mnist20x20', 'cifar10-3', 'cifar10-31', 'adult', 'breast', 'jsc'], default="mnist20x20", help='Dataset to use')
     parser.add_argument('--seed', type=int, default=0, help='seed (default: 0)')
@@ -30,6 +34,10 @@ def get_args():
 
     parser.add_argument('--name', type=str, help='Experiment name')
     parser.add_argument('--vhdl', action='store_true', help='Get VHDL code from net weights.')
+
+    # system verilog
+    parser.add_argument('--sv', action='store_true', help='Get system verilog code from net weights.')
+
     parser.add_argument('--save', action='store_true', help='Save model weights.')
     parser.add_argument('--train', action='store_true', help='Train model.')
     parser.add_argument('--load', action='store_true', help='Load model')
@@ -138,7 +146,11 @@ if __name__ == "__main__":
     train_loader, test_loader, input_dim_dataset, num_classes = load_dataset(args)
 
     if args.load:
-        model = torch.load(f"models/{args.name}.pth")
+        # model = torch.load(f"models/{args.name}.pth")
+        model = torch.load(
+            f"models/{args.name}.pth",
+            weights_only=False
+        )
     else:
         model = LUTNN(args.luts_per_layer, args.num_layers, args.lut_size, input_dim_dataset, num_classes, device, tau=args.tau)
     if args.train:
@@ -148,6 +160,10 @@ if __name__ == "__main__":
         if args.vhdl:
             number_of_layers, num_neurons, lut_size, number_of_inputs, number_of_classes = get_model_params(model)
             gen_vhdl_code(model, args.name, number_of_layers, number_of_classes, number_of_inputs, num_neurons,
+                          lut_size)
+        if args.sv:
+            number_of_layers, num_neurons, lut_size, number_of_inputs, number_of_classes = get_model_params(model)
+            gen_sv_code(model, args.name, number_of_layers, number_of_classes, number_of_inputs, num_neurons,
                           lut_size)
     if args.save:
         directory = "models"

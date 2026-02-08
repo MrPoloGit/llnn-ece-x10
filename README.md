@@ -67,3 +67,20 @@ model = torch.nn.Sequential(
 ## LUTNN Testbench
 
 We offer a testbench with VHDL code and additional utility functions (e.g., `bin_to_hex`) for validating a LLNN trained on the MNIST dataset.
+
+# Running Python
+
+In terminal
+
+```bash
+python main.py --help
+python3 -m venv venv
+source venv/bin/activate
+pip install -e .
+pip install -r requirements.txt
+python main.py --train --save --name model1 --dataset mnist --batch-size 128 -lr 0.01 --num-iterations 10000
+python main.py --load --name model1 --dataset mnist
+python main.py --load --vhdl --name model1 --dataset mnist
+```
+
+## Need to add a clean script?
