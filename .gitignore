@@ -8,3 +8,4 @@ lutnn.egg-info/
 venv/
 .DS_Store
 data-uci/
+examples/.ipynb_checkpoints/
