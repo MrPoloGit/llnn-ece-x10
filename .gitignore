@@ -6,3 +6,5 @@ data-mnist/
 data/
 lutnn.egg-info/
 venv/
+.DS_Store
+data-uci/
