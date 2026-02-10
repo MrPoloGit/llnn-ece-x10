@@ -27,18 +27,19 @@ def gen_globals_file(number_of_inputs, number_of_layers, num_neurons, lut_size, 
         file.write("// -------------------------------------------------------------------------------------\n")
         file.write("\n")
 
-        file.write("package Globals;\n")
+        file.write("`ifndef GLOBALS_SV\n")
+        file.write("`define GLOBALS_SV\n")
         file.write("\n")
 
-        file.write("\t// Network configuration\n")
-        file.write(f"\tparameter int NET_INPUTS = {number_of_inputs};\n")
+        file.write("// Network configuration\n")
+        file.write(f"localparam NET_INPUTS = {number_of_inputs};\n")
         for i in range(number_of_layers):
-            file.write(f"\tparameter int L{i}_NEURONS = {num_neurons[i]};\n")
-        file.write(f"\tparameter int CLASS_OUTS = {outputs_per_class};\n")
-        file.write(f"\tparameter int NET_OUTPUT_BITS = {output_bits};\n")
+            file.write(f"localparam L{i}_NEURONS = {num_neurons[i]};\n")
+        file.write(f"localparam CLASS_OUTS = {outputs_per_class};\n")
+        file.write(f"localparam NET_OUTPUT_BITS = {output_bits};\n")
 
         file.write("\n")
-        file.write("endpackage : Globals\n")
+        file.write("`endif // GLOBALS_SV\n")
 
 def gen_top_file(sv_path, number_of_layers, number_of_classes, num_neurons, outputs_per_class, output_bits):
     with open(os.path.join(sv_path, "top.sv"), "w") as file:
@@ -47,7 +48,7 @@ def gen_top_file(sv_path, number_of_layers, number_of_classes, num_neurons, outp
         file.write("// --------------------------------------------------------------------------------------\n")
         file.write("\n")
 
-        file.write("import Globals::*;\n")
+        file.write("`include \"Globals.sv\"\n")
         file.write("\n")
 
         file.write("module top (\n")
@@ -82,11 +83,26 @@ def gen_top_file(sv_path, number_of_layers, number_of_classes, num_neurons, outp
             file.write("\t);\n")
             file.write("\n")
 
+        # Emit a parameterized popcount function (Yosys doesn't support $countones)
+        result_width = (outputs_per_class - 1).bit_length() + 1  # bits needed to hold count
+        file.write(f"\t// Parameterized popcount function\n")
+        file.write(f"\tfunction automatic [{result_width-1}:0] popcount;\n")
+        file.write(f"\t\tinput [{outputs_per_class-1}:0] v;\n")
+        file.write(f"\t\tinteger i;\n")
+        file.write(f"\t\tbegin\n")
+        file.write(f"\t\t\tpopcount = 0;\n")
+        file.write(f"\t\t\tfor (i = 0; i < {outputs_per_class}; i = i + 1)\n")
+        file.write(f"\t\t\t\tpopcount = popcount + v[i];\n")
+        file.write(f"\t\tend\n")
+        file.write(f"\tendfunction\n")
+        file.write("\n")
+
         file.write("\t// Popcount per class\n")
         for i in range(number_of_classes):
             hi = num_neurons[-1] - 1 - outputs_per_class * i
             lo = num_neurons[-1] - outputs_per_class * (i + 1)
-            file.write(f"\tassign C{number_of_classes - i - 1} = $countones(F_L{number_of_layers - 1}[{hi}:{lo}]);\n")
+            file.write(f"\tassign C{number_of_classes - i - 1} = popcount(F_L{number_of_layers - 1}[{hi}:{lo}]);\n")
+
 
         file.write("\n")
 
@@ -150,7 +166,7 @@ def gen_comparator_file(sv_path):
         file.write("// --------------------------------------------------------------------------------------\n")
         file.write("\n")
 
-        file.write("import Globals::*;\n")
+        file.write("`include \"Globals.sv\"\n")
         file.write("\n")
 
         file.write("module comparator (\n")
@@ -181,7 +197,7 @@ def gen_layer_header(file, layer):
     file.write("// --------------------------------------------------------------------------------------\n")
     file.write("\n")
 
-    file.write("import Globals::*;\n")
+    file.write("`include \"Globals.sv\"\n")
     file.write("\n")
 
     file.write(f"module layer{layer} (\n")
@@ -223,7 +239,7 @@ def process_file(layers, sv_path, num_neurons, lut_size):
                     bit = (table >> k) & 1
                     file.write(f"\t\t\t{lut_size[l]}'d{k}: lut_out_{neuron} = 1'b{bit};\n")
 
-                file.write("\t\t\tdefault: lut_out_{neuron} = 1'b0;\n")
+                file.write(f"\t\t\tdefault: lut_out_{neuron} = 1'b0;\n")
                 file.write("\t\tendcase\n")
                 file.write("\tend\n")
 
