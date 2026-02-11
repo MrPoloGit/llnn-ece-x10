@@ -1,0 +1,9 @@
+# iCEBreaker v1.0e pin constraints
+# iCE40UP5K-SG48
+
+# 12 MHz oscillator
+set_io clk      35
+
+# UART (active FTDI interface)
+set_io uart_rx  6
+set_io uart_tx  9
