@@ -55,14 +55,9 @@ model = torch.nn.Sequential(
 
 `python main.py --load --name model1 --dataset mnist`
 
-
 # VHDL
 
 ![Toolflow 1](https://github.com/user-attachments/assets/2e751f7c-c13d-48fd-9776-e09ff8ce25f3)
-
-## VHDL code generation example
-
-` python vhdl/convert2vhdl.py --model model1`
 
 ## LUTNN Testbench
 
@@ -89,8 +84,3 @@ python main.py --load --name model1 --dataset mnist
 python main.py --load --vhdl --name model1 --dataset mnist
 python main.py --load --sv --name model1 --dataset mnist
 ```
-
-# Changes
-- main.py, line 229
-- utils/mnist.py, line 47
-- vhdl/convert2vhdl, line 266
